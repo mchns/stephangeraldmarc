@@ -2,9 +2,9 @@ name = Delete Tab
 description = This is a very small module that adds Delete link as a tab in the node pages.
 core = 7.x
 
-; Information added by drupal.org packaging script on 2013-07-11
-version = "7.x-1.0"
+; Information added by Drupal.org packaging script on 2016-07-03
+version = "7.x-1.2"
 core = "7.x"
 project = "delete_tab"
-datestamp = "1373581871"
+datestamp = "1467521640"
 
