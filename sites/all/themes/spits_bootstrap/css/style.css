@@ -1,0 +1,110 @@
+@font-face {
+    font-family: 'ostrich_sansmedium';
+    src: url('ostrich-regular-webfont.eot');
+    src: url('ostrich-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('ostrich-regular-webfont.woff') format('woff'),
+         url('ostrich-regular-webfont.ttf') format('truetype'),
+         url('ostrich-regular-webfont.svg#ostrich_sansmedium') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@import "inc/prefixer.less";
+
+.page-header {
+  border-bottom: none;
+}
+
+.img-responsive {
+  width: 100%;
+}
+
+.view-mode-image_right .col-sm-5{
+  float: right;
+}
+
+.view-mode-image_right .col-sm-7{
+  float: left;
+}
+
+
+body {
+  font-family: 'ostrich_sansmedium';
+  font-size: 40px;
+  letter-spacing: 1.6px;
+}
+
+h1,h2,h3 {
+  font-family: 'ostrich_sansmedium';
+  font-size: 50px; 
+}
+
+body.navbar-is-fixed-top #navbar,
+body.navbar-is-fixed-bottom #navbar {
+  background: #fff;
+}
+
+.navbar-btn {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+  color: #000;
+  background: transparent;
+}
+
+.navbar.container {
+  margin-top: 0;
+}
+
+.navbar-default {
+  background-color: transparent;
+  border: none;
+}
+
+.navbar-collapse {  
+  border-top: 1px dashed #9c9ca0;
+  border-bottom: 1px dashed #9c9ca0;
+}
+
+.navbar-nav > li > a {
+  font-size: 24px;
+  line-height: 24px;
+  padding: 15px 20px;
+}
+
+/* Small devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+
+  body.navbar-is-fixed-top {
+    padding-top: 194px !important;
+  }
+
+  .navbar-header {
+    float: none;
+    text-align: center;
+  }
+  
+  .navbar .logo {
+    display: inline-block;
+    padding: 0;
+  }
+  .container > .navbar-header, 
+  .container > .navbar-collapse {
+    margin: 0 -15px;  
+  }
+  
+  .navbar-nav {
+    float: none;
+    width: 100%;
+    text-align: center;
+    font-size: 0px;
+  }
+  
+  .navbar-nav > li {
+    float: none;
+    display: inline-block;  
+  }
+}

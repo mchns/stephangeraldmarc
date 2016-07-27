@@ -1,0 +1,5 @@
+name = Field Collection View Mode
+description = Select the view mode for each field selection item
+dependencies[] = field_collection
+package = Fields
+core = 7.x

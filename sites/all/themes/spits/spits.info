@@ -1,0 +1,14 @@
+name = Spits
+description = Spits theme
+core = 7.x
+
+stylesheets[all][] = less/style.css.less
+
+;-------------- CSS FOAD -------------
+stylesheets[all][] = system.menus.css
+
+scripts[] = js/modernizr.custom.js
+scripts[] = js/classie.js
+scripts[] = js/mlpushmenu.js  
+; scripts[] = js/jquery.foggy.min.js
+scripts[] = js/scripts.js

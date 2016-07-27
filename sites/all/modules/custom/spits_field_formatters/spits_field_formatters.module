@@ -1,0 +1,202 @@
+<?php
+/**
+ * Implements hook_field_formatter_info().
+ */
+function spits_field_formatters_field_formatter_info() {
+  return array(
+    'spits_field_collection_section' => array(
+      'label' => t('Sections'),
+      'description' => t('Renders each field collection item as a section'),
+      'field types' => array(
+        'field_collection',
+      ),
+      'settings' => array(
+        'items_per_section' => 1,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function spits_field_formatters_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+
+  if ($display['type'] == 'spits_field_collection_section') {
+    $element['items_per_section'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Items per section'),
+      '#size' => 20,
+      '#default_value' => $settings['items_per_section'],
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function spits_field_formatters_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  if ($display['type'] == 'spits_field_collection_section') {
+    return check_plain('<section class="section">field collection</section>');
+  }
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function spits_field_formatters_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+
+  switch ($display['type']) {
+    case 'spits_link_calltoaction':
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#markup' => l('<span>' . $item['title'] . '</span>', $item['url'], array('html' => TRUE)),
+        );
+      }
+      break;
+
+    case 'spits_field_collection_section':
+      $sections = array();
+      $items_per_section = !empty($display['settings']['items_per_section']) ? $display['settings']['items_per_section'] : 1;
+
+      foreach ($items as $delta => $item) {
+        $data['data'] = ''; // section output
+        $data['id'] = ''; // section id
+        $data['classes'] = array(); // section classes
+
+        $field_collection = field_collection_field_get_entity($item);
+        if (empty($field_collection)) {
+          continue;
+        }
+                
+        $view_mode = 'full';
+        if(!empty($field_collection->field_view_mode2[LANGUAGE_NONE][0]['field_collection_select'])) {
+          $view_mode = $field_collection->field_view_mode2[LANGUAGE_NONE][0]['field_collection_select'];
+        }
+
+        // Render the field collection.
+        $view = $field_collection->view($view_mode);
+        $data['data'] = $view['field_collection_item'][$field_collection->identifier()];
+
+        // Add id's and classes.
+        // Add block title as section id
+        if (!empty($field_collection->field_block[LANGUAGE_NONE][0]['bid'])) {
+          $block_title = db_query("SELECT title FROM {block} WHERE bid=:bid", array(':bid' => $field_collection->field_block[LANGUAGE_NONE][0]['bid']))->fetchField();
+          if (!empty($block_title)) {
+            $data['id'] = drupal_html_class($block_title);
+          }
+          else {
+            $data['id'] = 'section-block-block-id-' . $field_collection->field_block[LANGUAGE_NONE][0]['bid'];
+          }
+          $data['classes'][] = 'section-reference-block';
+        }
+        // Add referenced node title as section id
+        elseif (!empty($field_collection->field_node[LANGUAGE_NONE][0]['entity']->title)) {
+          $data['id'] = drupal_html_class($field_collection->field_node[LANGUAGE_NONE][0]['entity']->title);
+          if (!empty($field_collection->field_view_mode[LANGUAGE_NONE][0]['value'])) {
+            $data['classes'][] = drupal_html_class($field_collection->field_view_mode[LANGUAGE_NONE][0]['value']);
+          }
+        }
+
+        // add the field collection title as id -- used in a field_section field collection
+        if (empty($data['id']) && !empty($field_collection->field_title[LANGUAGE_NONE][0]['value'])) {
+          $data['id'] = drupal_html_class($field_collection->field_title[LANGUAGE_NONE][0]['value']);
+        }
+
+        // Add this field collection to $sections
+        $sections[] = $data;
+      }
+
+      $element[] = array(
+        '#theme' => 'spits_field_collection_section',
+        '#items_per_section' => $items_per_section,
+        '#elements_list' => $sections,
+      );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function spits_field_formatters_theme() {
+  return array(
+    'spits_field_collection_section' => array(
+      'variables' => array(
+        'elements_list' => array(),
+        'items_per_section' => 1,
+      )
+    ),
+  );
+}
+
+/**
+ * Default implementation of theme_spits_field_collection_section().
+ */
+function theme_spits_field_collection_section($variables) {
+  static $previous_view_mode_was_a_vitrine = FALSE;
+  $i = 0;
+  $output = '';
+  $count = count($variables['elements_list']);
+
+  foreach ($variables['elements_list'] as $element) {
+    $rendered_output = drupal_render($element['data']);
+    $classes = $element['classes'];
+
+    // remove section wrapper class if there are more field collections in this section (=vitrine/grid) and add a .section-vitrine class
+    if ($variables['items_per_section'] > 1) {
+      $classes = array('section-vitrine');
+      $previous_view_mode_was_a_vitrine = TRUE;
+    }
+
+    $class = implode(' ', $classes);
+
+    // open section wrapper
+    if ($i % $variables['items_per_section'] == 0) {
+      $id = !empty($element['id']) && $variables['items_per_section'] == 1 ? ' id="' . $element['id'] . '"' : '';
+
+      // add a double spacer section if the last section was a vitrine column and the current section is a section-calltoaction
+      if ($previous_view_mode_was_a_vitrine && !in_array('section-vitrine', $classes) && in_array('section-calltoaction', $classes)) {
+        $output .= '<section class="section section-spacer section-spacer-double"></section>';
+        $previous_view_mode_was_a_vitrine = FALSE;
+      }
+      // add a spacer section after the last vitrine column
+      elseif ($previous_view_mode_was_a_vitrine && !in_array('section-vitrine', $classes)) {
+        $output .= '<section class="section section-spacer"></section>';
+        $previous_view_mode_was_a_vitrine = FALSE;
+      }
+      elseif (in_array('section-calltoaction', $classes)) {
+        $output .= '<section class="section section-spacer"></section>';
+      }
+
+      $output .= '<section class="section ' . $class . '"' . $id . '>';
+      if (!empty($class) && !in_array('section-reference-block', $classes) && !in_array('section-calltoaction', $classes) && !in_array('section-vitrine', $classes)) {
+        $output .= '<div class="scroll">';
+      }
+    }
+
+    $output .= $rendered_output;
+
+    $i++;
+    // close section wrapper
+    if ($i % $variables['items_per_section'] == 0 || $i == $count) {
+      if (!empty($class) && !in_array('section-reference-block', $classes) && !in_array('section-calltoaction', $classes) && !in_array('section-vitrine', $classes)) {
+        $output .= '</div><!-- .scroll -->';
+      }
+      $output .= '</section>';
+    }
+  }
+
+  return $output;
+}

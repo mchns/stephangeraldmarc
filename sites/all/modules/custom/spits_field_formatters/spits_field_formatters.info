@@ -1,0 +1,5 @@
+name = Spits Field Formatters
+description = Field formatters
+core = 7.x
+package = Spits
+version = 7.x-1.0

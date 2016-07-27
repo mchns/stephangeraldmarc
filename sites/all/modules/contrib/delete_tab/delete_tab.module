@@ -1,0 +1,12 @@
+<?php
+/**
+ * @file
+ * Module file for the Delete Tab.
+ */
+
+/**
+ * Implements hook_menu_alter().
+ */
+function delete_tab_menu_alter(&$items) {
+  $items['node/%node/delete']['context'] = MENU_CONTEXT_INLINE | MENU_CONTEXT_PAGE;
+}
